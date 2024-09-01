@@ -194,19 +194,16 @@ class _CCMainState extends State<CCMain> {
           _buildTintSlider('Red', _tintR, Colors.red, (value) {
             setState(() {
               _tintR = value;
-              _updateImagePreview();
             });
           }),
           _buildTintSlider('Green', _tintG, Colors.green, (value) {
             setState(() {
               _tintG = value;
-              _updateImagePreview();
             });
           }),
           _buildTintSlider('Blue', _tintB, Colors.blue, (value) {
             setState(() {
               _tintB = value;
-              _updateImagePreview();
             });
           }),
         ],
@@ -223,7 +220,6 @@ class _CCMainState extends State<CCMain> {
             } else {
               _hue = value;
             }
-            _updateImagePreview();
           });
         },
       );
@@ -245,7 +241,6 @@ class _CCMainState extends State<CCMain> {
             } else if (_isSaturation) {
               _saturation = value;
             }
-            _updateImagePreview();
           });
         },
       );
@@ -269,67 +264,66 @@ class _CCMainState extends State<CCMain> {
   }
 
   Widget _buildBottomButtons() {
-  return Container(
-    padding: EdgeInsets.all(8.0),
-    child: SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildBottomButton(Icons.brightness_6, 'Brightness', _isBrightness, () {
-            setState(() {
-              _setActiveAdjustment('brightness');
-            });
-          }),
-          _buildBottomButton(Icons.contrast, 'Contrast', _isContrast, () {
-            setState(() {
-              _setActiveAdjustment('contrast');
-            });
-          }),
-          _buildBottomButton(Icons.color_lens, 'Saturation', _isSaturation, () {
-            setState(() {
-              _setActiveAdjustment('saturation');
-            });
-          }),
-          _buildBottomButton(Icons.thermostat, 'Temperature', _isTemperature, () {
-            setState(() {
-              _setActiveAdjustment('temperature');
-            });
-          }),
-          _buildBottomButton(Icons.account_tree, 'Hue', _isHue, () {
-            setState(() {
-              _setActiveAdjustment('hue');
-            });
-          }),
-          _buildBottomButton(Icons.invert_colors, 'Tint', _isTint, () {
-            setState(() {
-              _setActiveAdjustment('tint');
-            });
-          }),
-          _buildBottomButton(Icons.filter, 'Filter', _isFilter, () async {
-            final updatedImage = await _captureImageWithCurrentAdjustments();
-            final selectedFilter = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FilterScreen(
-                    image: updatedImage,
-                    initialFilter: _selectedFilter),
-              ),
-            );
-            if (selectedFilter != null) {
+    return Container(
+      padding: EdgeInsets.all(8.0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildBottomButton(Icons.brightness_6, 'Brightness', _isBrightness,
+                () {
               setState(() {
-                _selectedFilter = selectedFilter;
-                _isFilter = true;
-                _updateImagePreview();
+                _setActiveAdjustment('brightness');
               });
-            }
-          }),
-        ],
+            }),
+            _buildBottomButton(Icons.contrast, 'Contrast', _isContrast, () {
+              setState(() {
+                _setActiveAdjustment('contrast');
+              });
+            }),
+            _buildBottomButton(Icons.color_lens, 'Saturation', _isSaturation,
+                () {
+              setState(() {
+                _setActiveAdjustment('saturation');
+              });
+            }),
+            _buildBottomButton(Icons.thermostat, 'Temperature', _isTemperature,
+                () {
+              setState(() {
+                _setActiveAdjustment('temperature');
+              });
+            }),
+            _buildBottomButton(Icons.account_tree, 'Hue', _isHue, () {
+              setState(() {
+                _setActiveAdjustment('hue');
+              });
+            }),
+            _buildBottomButton(Icons.invert_colors, 'Tint', _isTint, () {
+              setState(() {
+                _setActiveAdjustment('tint');
+              });
+            }),
+            _buildBottomButton(Icons.filter, 'Filter', _isFilter, () async {
+              final selectedFilter = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FilterScreen(
+                      image: widget.image, initialFilter: _selectedFilter),
+                ),
+              );
+              if (selectedFilter != null) {
+                setState(() {
+                  _selectedFilter = selectedFilter;
+                  _isFilter = true;
+                });
+              }
+            }),
+          ],
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   Widget _buildBottomButton(
       IconData icon, String text, bool isActive, VoidCallback onTap) {
@@ -351,7 +345,6 @@ class _CCMainState extends State<CCMain> {
       _isHue = adjustment == 'hue';
       _isTint = adjustment == 'tint';
       _isFilter = adjustment == 'filter';
-      _updateImagePreview();
     });
   }
 
@@ -397,35 +390,16 @@ class _CCMainState extends State<CCMain> {
     }
     return result;
   }
-
-  Future<File> _captureImageWithCurrentAdjustments() async {
-    RenderRepaintBoundary boundary =
-        _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    var image = await boundary.toImage();
-    ByteData? byteData = await image.toByteData(format: ImageByteFormat.png);
-    Uint8List pngBytes = byteData!.buffer.asUint8List();
-
-    final directory = await getTemporaryDirectory();
-    final imagePath =
-        '${directory.path}/temp_image_${DateTime.now().millisecondsSinceEpoch}.png';
-    final imageFile = File(imagePath);
-    await imageFile.writeAsBytes(pngBytes);
-    return imageFile;
-  }
-
-  void _updateImagePreview() {
-    // Force a rebuild of the image preview with the current adjustments
-    setState(() {});
-  }
 }
 
 List<double> _createBrightnessMatrix(double brightness) {
+  // Adjusted brightness matrix to be less aggressive
   return [
     1,
     0,
     0,
     0,
-    brightness * 150,
+    brightness * 150, // Reduced impact of brightness
     0,
     1,
     0,
